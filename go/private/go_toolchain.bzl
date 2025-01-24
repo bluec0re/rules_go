@@ -200,6 +200,33 @@ def declare_bazel_toolchains(
         visibility = ["//visibility:private"],
     )
 
+    sdk_name_label = Label("//go/toolchain:sdk_name")
+
+    native.config_setting(
+        name = prefix + "match_sdk_name",
+        flag_values = {
+            sdk_name_label: go_toolchain_repo[1:] if go_toolchain_repo.startswith("@") else go_toolchain_repo,
+        },
+        visibility = ["//visibility:private"],
+    )
+
+    native.config_setting(
+        name = prefix + "match_all_sdks",
+        flag_values = {
+            sdk_name_label: "",
+        },
+        visibility = ["//visibility:private"],
+    )
+
+    selects.config_setting_group(
+        name = prefix + "sdk_name_setting",
+        match_any = [
+            ":" + prefix + "match_all_sdks",
+            ":" + prefix + "match_sdk_name",
+        ],
+        visibility = ["//visibility:private"],
+    )
+
     for p in PLATFORMS:
         if p.cgo:
             # Don't declare separate toolchains for cgo_on / cgo_off.
@@ -222,6 +249,9 @@ def declare_bazel_toolchains(
                 "@io_bazel_rules_go//go/toolchain:" + host_goarch,
             ],
             target_compatible_with = constraints,
-            target_settings = [":" + prefix + "sdk_version_setting"],
+            target_settings = [
+                ":" + prefix + "sdk_name_setting",
+                ":" + prefix + "sdk_version_setting",
+            ],
             toolchain = go_toolchain_repo + "//:go_" + p.name + "-impl",
         )
