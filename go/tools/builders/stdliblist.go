@@ -272,9 +272,9 @@ func stdliblist(args []string) error {
 		listArgs = append(listArgs, "-tags", strings.Join(build.Default.BuildTags, ","))
 	}
 
-	if cgoEnabled {
-		listArgs = append(listArgs, "-compiled=true")
-	}
+	// CompiledGoFiles is consulted for all files required to build a package (unrelated if CGO is enabled or not).
+	// Set -compiled=true to populate the field.
+	listArgs = append(listArgs, "-compiled=true")
 
 	listArgs = append(listArgs, "-json", "builtin", "std", "runtime/cgo")
 
