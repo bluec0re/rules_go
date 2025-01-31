@@ -123,6 +123,7 @@ def declare_bazel_toolchains(
         minor,
         patch,
         prerelease,
+        sdk_name,
         sdk_type,
         prefix = ""):
     """Declares toolchain targets for each platform."""
@@ -200,12 +201,15 @@ def declare_bazel_toolchains(
         visibility = ["//visibility:private"],
     )
 
+    # use Label constructor to resolve the label relative to the package this bzl file
+    # is located, instead of the context of the caller of declare_bazel_toolchains.
+    # See https://bazel.build/rules/lib/builtins/Label#Label for details.
     sdk_name_label = Label("//go/toolchain:sdk_name")
 
     native.config_setting(
         name = prefix + "match_sdk_name",
         flag_values = {
-            sdk_name_label: go_toolchain_repo[1:] if go_toolchain_repo.startswith("@") else go_toolchain_repo,
+            sdk_name_label: sdk_name,
         },
         visibility = ["//visibility:private"],
     )
